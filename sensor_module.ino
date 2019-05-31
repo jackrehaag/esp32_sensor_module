@@ -3,6 +3,7 @@
 #include <DHT.h>
 #include <DHT_U.h>
 #include <PubSubClient.h>
+#include "time.h"
 #include "secrets.h"
 
 #define DHTTYPE DHT11
@@ -12,6 +13,13 @@ const int READING_DELAY = 5000;
 const int RECONNECT_DELAY = 5000;
 const bool MOTION_ENABLED = false;
 
+const char* TEMPERATURE_TOPIC = "readings/temperature";
+const char* HUMIDITY_TOPIC = "readings/humidity";
+
+// NTP settings for time retrieval
+const char* ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = 0;
+const int daylightOffset_sec = 3600;
 
 DHT dht(DHTPin, DHTTYPE);
 WiFiClient wifi_client;
@@ -20,6 +28,18 @@ PubSubClient client(wifi_client);
 float tempC;
 float tempF;
 float humidity;
+String readingTime;
+
+
+// Add GMT time
+String getTime() {
+  struct tm timeinfo;
+  getLocalTime(&timeinfo);
+  char timeStringBuff[100];
+  strftime(timeStringBuff, sizeof(timeStringBuff), "%FT%H:%M:%S", &timeinfo);
+  std::string str(timeStringBuff);
+  return str.c_str();
+}
 
 void motionDetected() {
   Serial.println("Motion detected!");
@@ -33,6 +53,8 @@ void setup() {
   connectToWifi();
   dht.begin();
   client.setServer(mqtt_server, mqtt_port);
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  Serial.println(getTime());
 }
 
 void connectToWifi() {
@@ -61,11 +83,11 @@ char* stringTocharStar(String str) {
   }
 }
 
-void publishReadings(float tempC, float tempF, float humidity) {
+void publishReadings(String time, float tempC, float tempF, float humidity) {
   // Add ssid to include location information
   if (client.connected()) {
-    client.publish("readings/temperature", stringTocharStar(String(tempC)));
-    client.publish("readings/humidity", stringTocharStar(String(humidity)));
+    client.publish(TEMPERATURE_TOPIC, stringTocharStar(String(tempC)));
+    client.publish(HUMIDITY_TOPIC, stringTocharStar(String(humidity)));
     Serial.println("messages published");
   } else {
     Serial.println("Failed to publish message: not connected to server");
@@ -92,10 +114,12 @@ void loop() {
 
   delay(READING_DELAY);
 
+  String time = getTime();
   tempC = dht.readTemperature();
   tempF = dht.readTemperature(true);
   humidity = dht.readHumidity();
 
+  Serial.println(time);
 
   Serial.print("DHT temperature reading(C): ");
   Serial.print(tempC);
@@ -105,5 +129,5 @@ void loop() {
 
   Serial.print(", DHT humidity reading: ");
   Serial.println(humidity);
-  publishReadings(tempC, tempF, humidity);
+  publishReadings(time, tempC, tempF, humidity);
 }
