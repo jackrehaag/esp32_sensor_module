@@ -1,6 +1,6 @@
 # ESP32 multi-sensor IOT module
 
-IOT sensor project to publish temperature and humidity readings to an MQTT queue.
+IOT sensor project to publish temperature and humidity readings to an MQTT topic.
 
 ## Getting started
 
