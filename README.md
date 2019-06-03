@@ -42,3 +42,4 @@ Other non-secret variables to consider are:
 ## Todo
 
 - Publish motion sensor readings to MQTT
+- Add circuit diagram
