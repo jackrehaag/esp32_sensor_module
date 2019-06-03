@@ -11,7 +11,8 @@
 const int DHT_PIN = 15;
 const int MOTION_PIN = 23;
 const int READING_DELAY = 5000;
-const int RECONNECT_DELAY = 5000;
+const int WIFI_RECONNECT_DELAY = 4000;
+const int MQTT_RECONNECT_DELAY = 5000;
 const bool MOTION_ENABLED = false;
 const String SENSOR_NAME = "Jack\'s sensor";
 
@@ -52,13 +53,13 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(MOTION_PIN), motionDetected, CHANGE);
   connectToWifi();
   dht.begin();
-  client.setServer(mqtt_server, mqtt_port);
+  client.setServer(MQTT_SERVER, MQTT_PORT);
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   Serial.println(getTime());
 }
 
 void connectToWifi() {
-  delay(4000);
+  delay(WIFI_RECONNECT_DELAY);
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
 
@@ -136,7 +137,7 @@ void reconnect() {
     } else {
       Serial.print("failed to connect to MQTT server, error: ");
       Serial.print(client.state());
-      delay(RECONNECT_DELAY);
+      delay(MQTT_RECONNECT_DELAY);
     }
   }
 }

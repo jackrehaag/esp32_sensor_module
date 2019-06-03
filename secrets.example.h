@@ -5,6 +5,6 @@
 #define MQTTUSERNAME ""
 #define MQTTPASSWORD ""
 
-const char* mqtt_server = "";
+const char* MQTT_SERVER = "";
 // default MQTT port
-const int mqtt_port = 11567;
+const int MQTT_PORT = 11567;
