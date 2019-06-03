@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <Adafruit_Sensor.h>
+#include <ArduinoJson.h>
 #include <DHT.h>
 #include <DHT_U.h>
 #include <PubSubClient.h>
@@ -7,11 +8,12 @@
 #include "secrets.h"
 
 #define DHTTYPE DHT11
-const int DHTPin = 15;
+const int DHT_PIN = 15;
 const int MOTION_PIN = 23;
 const int READING_DELAY = 5000;
 const int RECONNECT_DELAY = 5000;
 const bool MOTION_ENABLED = false;
+const String SENSOR_NAME = "Jack\'s sensor";
 
 const char* TEMPERATURE_TOPIC = "readings/temperature";
 const char* HUMIDITY_TOPIC = "readings/humidity";
@@ -21,7 +23,7 @@ const char* ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 0;
 const int daylightOffset_sec = 3600;
 
-DHT dht(DHTPin, DHTTYPE);
+DHT dht(DHT_PIN, DHTTYPE);
 WiFiClient wifi_client;
 PubSubClient client(wifi_client);
 
@@ -30,8 +32,6 @@ float tempF;
 float humidity;
 String readingTime;
 
-
-// Add GMT time
 String getTime() {
   struct tm timeinfo;
   getLocalTime(&timeinfo);
@@ -83,14 +83,48 @@ char* stringTocharStar(String str) {
   }
 }
 
-void publishReadings(String time, float tempC, float tempF, float humidity) {
-  // Add ssid to include location information
-  if (client.connected()) {
-    client.publish(TEMPERATURE_TOPIC, stringTocharStar(String(tempC)));
-    client.publish(HUMIDITY_TOPIC, stringTocharStar(String(humidity)));
-    Serial.println("messages published");
+String createHumidityMessage(String dateTime, float humidity) {
+  DynamicJsonDocument doc(1024);
+  String message;
+
+  doc["sensor_name"] = SENSOR_NAME;
+  doc["event_datetime"] = dateTime;
+  doc["event_type"] = "humidity_reading";
+  doc["humidity_percentage"] = humidity;
+  serializeJson(doc, message);
+  return message;
+}
+
+String createTemperatureMessage(String dateTime, float tempC, float tempF) {
+  DynamicJsonDocument doc(1024);
+  String message;
+
+  doc["sensor_name"] = SENSOR_NAME;
+  doc["event_datetime"] = dateTime;
+  doc["event_type"] = "temperature_reading";
+  doc["temperature_celsius"] = tempC;
+  doc["temperature_farenheit"] = tempF;
+  serializeJson(doc, message);
+  return message;
+}
+
+void publishMessage(char const* topic, char* message) {
+  if (client.publish(topic, stringTocharStar(message))) {
+    Serial.println("Message published to " + String(topic) + ": " + message);
   } else {
-    Serial.println("Failed to publish message: not connected to server");
+    Serial.println("Problem publishing message to " + String(topic) + ": " + message);
+  }
+}
+
+void publishReadings(String dateTime, float tempC, float tempF, float humidity) {
+  String temperature_message = createTemperatureMessage(dateTime, tempC, tempF);
+  String humidity_message = createHumidityMessage(dateTime, humidity);
+
+  if (client.connected()) {
+    publishMessage(TEMPERATURE_TOPIC, stringTocharStar(temperature_message));
+    publishMessage(HUMIDITY_TOPIC, stringTocharStar(humidity_message));
+  } else {
+    Serial.println("Failed to publish messages: not connected to MQTT server");
   }
 }
 
@@ -112,8 +146,6 @@ void loop() {
     reconnect();
   }
 
-  delay(READING_DELAY);
-
   String time = getTime();
   tempC = dht.readTemperature();
   tempF = dht.readTemperature(true);
@@ -130,4 +162,5 @@ void loop() {
   Serial.print(", DHT humidity reading: ");
   Serial.println(humidity);
   publishReadings(time, tempC, tempF, humidity);
+  delay(READING_DELAY);
 }
