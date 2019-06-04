@@ -35,7 +35,7 @@ Other non-secret variables to consider are:
 | `WIFI_RECONNECT_DELAY` | Delay between reconnects to the WiFi router if a connection cannot be established                 |
 | `MQTT_RECONNECT_DELAY` | Delay between reconnects to the MQTT server if a connection cannot be established                 |
 | `MOTION_ENABLED`       | Boolean value to enable/disable the motion sensor readings                                        |
-| `SENSOR_NAME`          | A name for the sensor to differentiate between readings from multiple sensors                     |
+| `SENSOR_ID`            | An ID for the sensor to differentiate between readings from multiple sensors                      |
 | `TEMPERATURE_TOPIC`    | MQTT topic to publish temperature readings to                                                     |
 | `HUMIDITY_TOPIC`       | MQTT topic to publish humidity readings to                                                        |
 

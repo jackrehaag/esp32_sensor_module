@@ -14,7 +14,7 @@ const int READING_DELAY = 5000;
 const int WIFI_RECONNECT_DELAY = 4000;
 const int MQTT_RECONNECT_DELAY = 5000;
 const bool MOTION_ENABLED = false;
-const String SENSOR_NAME = "Jack\'s sensor";
+const String SENSOR_ID = "Jack\'s sensor";
 
 const char* TEMPERATURE_TOPIC = "readings/temperature";
 const char* HUMIDITY_TOPIC = "readings/humidity";
@@ -88,7 +88,7 @@ String createHumidityMessage(String dateTime, float humidity) {
   DynamicJsonDocument doc(1024);
   String message;
 
-  doc["sensor_name"] = SENSOR_NAME;
+  doc["sensor_id"] = SENSOR_ID;
   doc["event_datetime"] = dateTime;
   doc["event_type"] = "humidity_reading";
   doc["humidity_percentage"] = humidity;
@@ -100,7 +100,7 @@ String createTemperatureMessage(String dateTime, float tempC, float tempF) {
   DynamicJsonDocument doc(1024);
   String message;
 
-  doc["sensor_name"] = SENSOR_NAME;
+  doc["sensor_id"] = SENSOR_ID;
   doc["event_datetime"] = dateTime;
   doc["event_type"] = "temperature_reading";
   doc["temperature_celsius"] = tempC;
