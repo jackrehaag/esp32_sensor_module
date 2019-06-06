@@ -139,6 +139,18 @@ void publishMessage(char const* topic, char* message) {
   }
 }
 
+void printReadings(String dateTime, float tempC, float tempF, float humidity) {
+  Serial.println(dateTime)
+  Serial.print("DHT temperature reading(C): ");
+  Serial.print(tempC);
+
+  Serial.print(", DHT temperature reading(F): ");
+  Serial.print(tempF);
+
+  Serial.print(", DHT humidity reading: ");
+  Serial.println(humidity);
+}
+
 void publishReadings(String dateTime, float tempC, float tempF, float humidity) {
   String temperature_message = createTemperatureMessage(dateTime, tempC, tempF);
   String humidity_message = createHumidityMessage(dateTime, humidity);
@@ -174,16 +186,7 @@ void loop() {
   tempF = dht.readTemperature(true);
   humidity = dht.readHumidity();
 
-  Serial.println(time);
-
-  Serial.print("DHT temperature reading(C): ");
-  Serial.print(tempC);
-
-  Serial.print(", DHT temperature reading(F): ");
-  Serial.print(tempF);
-
-  Serial.print(", DHT humidity reading: ");
-  Serial.println(humidity);
+  printReadings(time, tempC, tempF, humidity);
   publishReadings(time, tempC, tempF, humidity);
   delay(READING_DELAY);
 }
