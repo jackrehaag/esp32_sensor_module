@@ -140,7 +140,7 @@ void publishMessage(char const* topic, char* message) {
 }
 
 void printReadings(String dateTime, float tempC, float tempF, float humidity) {
-  Serial.println(dateTime)
+  Serial.println(dateTime);
   Serial.print("DHT temperature reading(C): ");
   Serial.print(tempC);
 
