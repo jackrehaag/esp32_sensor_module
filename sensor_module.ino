@@ -18,6 +18,7 @@ const String SENSOR_ID = "Jack\'s sensor";
 
 const char* TEMPERATURE_TOPIC = "readings/temperature";
 const char* HUMIDITY_TOPIC = "readings/humidity";
+const char* MOTION_DETECTED_TOPIC = "alerts/motion_detected";
 
 // NTP settings for time retrieval
 const char* ntpServer = "pool.ntp.org";
@@ -44,6 +45,7 @@ String getTime() {
 
 void motionDetected() {
   Serial.println("Motion detected!");
+  publishMotionDetectedMessage();
 }
 
 void setup() {
@@ -109,6 +111,24 @@ String createTemperatureMessage(String dateTime, float tempC, float tempF) {
   doc["temperature_farenheit"] = tempF;
   serializeJson(doc, message);
   return message;
+}
+
+String createMotionDetectedMessage() {
+  String message;
+  String datetime = getTime();
+  DynamicJsonDocument doc = createBaseMessage(datetime);
+  doc["event_type"] = "motion_detected";
+  serializeJson(doc, message);
+  return message;
+}
+
+void publishMotionDetectedMessage() {
+  String message = createMotionDetectedMessage();
+  if (client.connected()) {
+    publishMessage(MOTION_DETECTED_TOPIC, stringTocharStar(message));
+  } else {
+    Serial.println("Failed to publish messages: not connected to MQTT server");
+  }
 }
 
 void publishMessage(char const* topic, char* message) {
