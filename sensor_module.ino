@@ -84,12 +84,17 @@ char* stringTocharStar(String str) {
   }
 }
 
-String createHumidityMessage(String dateTime, float humidity) {
+DynamicJsonDocument createBaseMessage(String dateTime) {
   DynamicJsonDocument doc(1024);
-  String message;
-
   doc["sensor_id"] = SENSOR_ID;
   doc["event_datetime"] = dateTime;
+  return doc;
+}
+
+String createHumidityMessage(String dateTime, float humidity) {
+  String message;
+  DynamicJsonDocument doc = createBaseMessage(dateTime);
+
   doc["event_type"] = "humidity_reading";
   doc["humidity_percentage"] = humidity;
   serializeJson(doc, message);
@@ -97,11 +102,8 @@ String createHumidityMessage(String dateTime, float humidity) {
 }
 
 String createTemperatureMessage(String dateTime, float tempC, float tempF) {
-  DynamicJsonDocument doc(1024);
   String message;
-
-  doc["sensor_id"] = SENSOR_ID;
-  doc["event_datetime"] = dateTime;
+  DynamicJsonDocument doc = createBaseMessage(dateTime);
   doc["event_type"] = "temperature_reading";
   doc["temperature_celsius"] = tempC;
   doc["temperature_farenheit"] = tempF;
