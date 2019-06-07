@@ -13,7 +13,7 @@ const int MOTION_PIN = 23;
 const int READING_DELAY = 5000;
 const int WIFI_RECONNECT_DELAY = 4000;
 const int MQTT_RECONNECT_DELAY = 5000;
-const bool MOTION_ENABLED = false;
+const bool MOTION_ENABLED = true;
 const String SENSOR_ID = "Jack\'s sensor";
 
 const char* TEMPERATURE_TOPIC = "readings/temperature";
@@ -33,6 +33,8 @@ float tempC;
 float tempF;
 float humidity;
 String readingTime;
+int lastReading = READING_DELAY;
+TaskHandle_t motionTask;
 
 String getTime() {
   struct tm timeinfo;
@@ -45,19 +47,28 @@ String getTime() {
 
 void motionDetected() {
   Serial.println("Motion detected!");
-  publishMotionDetectedMessage();
+  xTaskCreatePinnedToCore(
+    publishMotionDetectedMessage,
+    "MotionTask",
+    10000,
+    NULL,
+    1,
+    &motionTask,
+    0
+  );
 }
 
 void setup() {
   Serial.begin(9600);
   Serial.println("Sensor module project!");
-  if (MOTION_ENABLED == true)
-    attachInterrupt(digitalPinToInterrupt(MOTION_PIN), motionDetected, CHANGE);
   connectToWifi();
   dht.begin();
   client.setServer(MQTT_SERVER, MQTT_PORT);
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  Serial.println(getTime());
+  if (MOTION_ENABLED == true) {
+    pinMode(MOTION_PIN, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(MOTION_PIN), motionDetected, RISING);
+  }
 }
 
 void connectToWifi() {
@@ -122,13 +133,14 @@ String createMotionDetectedMessage() {
   return message;
 }
 
-void publishMotionDetectedMessage() {
+void publishMotionDetectedMessage( void * pvParameters ) {
   String message = createMotionDetectedMessage();
   if (client.connected()) {
     publishMessage(MOTION_DETECTED_TOPIC, stringTocharStar(message));
   } else {
     Serial.println("Failed to publish messages: not connected to MQTT server");
   }
+  vTaskDelete(NULL);
 }
 
 void publishMessage(char const* topic, char* message) {
@@ -181,12 +193,14 @@ void loop() {
     reconnect();
   }
 
-  String time = getTime();
-  tempC = dht.readTemperature();
-  tempF = dht.readTemperature(true);
-  humidity = dht.readHumidity();
+  if ((millis() - lastReading) > READING_DELAY) {
+    String time = getTime();
+    tempC = dht.readTemperature();
+    tempF = dht.readTemperature(true);
+    humidity = dht.readHumidity();
 
-  printReadings(time, tempC, tempF, humidity);
-  publishReadings(time, tempC, tempF, humidity);
-  delay(READING_DELAY);
+    printReadings(time, tempC, tempF, humidity);
+    publishReadings(time, tempC, tempF, humidity);
+    lastReading = millis();
+  }
 }
