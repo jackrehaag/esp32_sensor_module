@@ -1,4 +1,4 @@
-#include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <Adafruit_Sensor.h>
 #include <ArduinoJson.h>
 #include <DHT.h>
@@ -26,7 +26,7 @@ const long gmtOffset_sec = 0;
 const int daylightOffset_sec = 3600;
 
 DHT dht(DHT_PIN, DHTTYPE);
-WiFiClient wifi_client;
+WiFiClientSecure wifi_client;
 PubSubClient client(wifi_client);
 
 float tempC;
@@ -48,21 +48,16 @@ String getTime() {
 
 void motionDetected() {
   Serial.println("Motion detected!");
-  xTaskCreatePinnedToCore(
-    publishMotionDetectedMessage,
-    "MotionTask",
-    10000,
-    NULL,
-    1,
-    &motionTask,
-    0
-  );
+  motionDetectedFlag = true;
 }
 
 void setup() {
   Serial.begin(9600);
   Serial.println("Sensor module project!");
   connectToWifi();
+  wifi_client.setCACert(ROOT_CA);
+  wifi_client.setCertificate(CLIENT_CERT);
+  wifi_client.setPrivateKey(CLIENT_KEY);
   dht.begin();
   client.setServer(MQTT_SERVER, MQTT_PORT);
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);

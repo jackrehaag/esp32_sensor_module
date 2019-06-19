@@ -26,6 +26,9 @@ An explanation of these variables can be found below
 | `WIFI_PASSWORD` | Password for the WiFi network                                              |
 | `MQTTUSERNAME`  | Username for an user on the MQTT server that you want to publish to        |
 | `MQTTPASSWORD`  | Password for the above user on the MQTT server that you want to publish to |
+| `ROOT_CA`       | Root CA certificate of you MQTT host                                       |
+| `CLIENT_CERT`   | Client certificate registered with your MQTT host                          |
+| `CLIENT_KEY`    | Client private key matching the public key registered with your MQTT host  |
 
 Other non-secret variables to consider are:
 
