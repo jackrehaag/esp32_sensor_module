@@ -34,6 +34,7 @@ float tempF;
 float humidity;
 String readingTime;
 int lastReading = READING_DELAY;
+bool motionDetectedFlag = false;
 TaskHandle_t motionTask;
 
 String getTime() {
@@ -202,5 +203,18 @@ void loop() {
     printReadings(time, tempC, tempF, humidity);
     publishReadings(time, tempC, tempF, humidity);
     lastReading = millis();
+  }
+
+  if (motionDetectedFlag == true) {
+    motionDetectedFlag = false;
+    xTaskCreatePinnedToCore(
+      publishMotionDetectedMessage,
+      "MotionTask",
+      10000,
+      NULL,
+      1,
+      &motionTask,
+      0
+    );
   }
 }
