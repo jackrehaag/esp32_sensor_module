@@ -7,7 +7,7 @@
 
 const char* MQTT_SERVER = "";
 // default MQTT port
-const int MQTT_PORT = 11567;
+const int MQTT_PORT = 8883;
 
 // Security credentials
 const char* ROOT_CA= \

@@ -35,7 +35,6 @@ float humidity;
 String readingTime;
 int lastReading = READING_DELAY;
 bool motionDetectedFlag = false;
-TaskHandle_t motionTask;
 
 String getTime() {
   struct tm timeinfo;
@@ -129,14 +128,13 @@ String createMotionDetectedMessage() {
   return message;
 }
 
-void publishMotionDetectedMessage( void * pvParameters ) {
+void publishMotionDetectedMessage() {
   String message = createMotionDetectedMessage();
   if (client.connected()) {
     publishMessage(MOTION_DETECTED_TOPIC, stringTocharStar(message));
   } else {
     Serial.println("Failed to publish messages: not connected to MQTT server");
   }
-  vTaskDelete(NULL);
 }
 
 void publishMessage(char const* topic, char* message) {
@@ -202,14 +200,6 @@ void loop() {
 
   if (motionDetectedFlag == true) {
     motionDetectedFlag = false;
-    xTaskCreatePinnedToCore(
-      publishMotionDetectedMessage,
-      "MotionTask",
-      10000,
-      NULL,
-      1,
-      &motionTask,
-      0
-    );
+    publishMotionDetectedMessage();
   }
 }
