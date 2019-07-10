@@ -10,11 +10,12 @@
 #define DHTTYPE DHT11
 const int DHT_PIN = 15;
 const int MOTION_PIN = 23;
-const int READING_DELAY = 5000;
+const int READING_DELAY = 600000;
 const int WIFI_RECONNECT_DELAY = 4000;
 const int MQTT_RECONNECT_DELAY = 5000;
 const bool MOTION_ENABLED = true;
-const String SENSOR_ID = "Jack\'s sensor";
+const String SENSOR_ID = "31343DFB-4CB8-4985-8322-ACEA8F26CDC3";
+const String SENSOR_NAME = "Jack\'s sensor";
 
 const char* TEMPERATURE_TOPIC = "readings/temperature";
 const char* HUMIDITY_TOPIC = "readings/humidity";
@@ -95,6 +96,7 @@ char* stringTocharStar(String str) {
 DynamicJsonDocument createBaseMessage(String dateTime) {
   DynamicJsonDocument doc(1024);
   doc["sensor_id"] = SENSOR_ID;
+  doc["sensor_name"] = SENSOR_NAME;
   doc["event_datetime"] = dateTime;
   return doc;
 }
